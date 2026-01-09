@@ -8,79 +8,55 @@ class BPE:
         self.vocab_size = vocab_size
 
     def fit(self, text):
-        # Get unique characters and sort them
+        tokens: list = self.__retrieve_tokens(text)
+        self.__id2token(tokens)
+        self.__token2id(tokens)
+
+        return tokens
+
+    def __retrieve_tokens(self, text: str):
         unique_tokens_set = set(text)
         unique_tokens = sorted(unique_tokens_set)
 
         size_diff = len(unique_tokens) - self.vocab_size
         if size_diff > 0:
-            unique_tokens = unique_tokens[:-size_diff]
-        else:
-            self.__study(unique_tokens)
-
-        # TODO handle edge case unique_tokens_set is already bigger than vocab size
+            return unique_tokens[:-size_diff]
 
         individual_chars = [ch for ch in text]
         while True:
             if len(unique_tokens) >= self.vocab_size:
-                break;
+                break
 
             pair_frequencies = OrderedDict()
             for idx in range(len(individual_chars) - 1):
-
-                pair = ''.join(individual_chars[idx: idx + 2])
+                pair = individual_chars[idx] + individual_chars[idx + 1]
                 if pair in unique_tokens_set:
                     continue
+                pair_frequencies[pair] = pair_frequencies.get(pair, 0) + 1
 
-                if pair in pair_frequencies:
-                    value = pair_frequencies[pair]
-                    value[0] += 1
-                    value.append(idx)
-                    pair_frequencies[pair] = value
-                else:
-                    pair_frequencies[pair] = [1, idx]
-
-            max_frequency = 0
-            most_frequent_pair_info = None
-
-            for pair, frequency in pair_frequencies.items():
-                if frequency[0] > max_frequency:
-                   max_frequency = frequency[0]
-                   most_frequent_pair_info = (pair, frequency[1:])
-
-            token, indexes = most_frequent_pair_info
-
-            unique_tokens.append(token)
-            individual_chars = self._replace_item(individual_chars, indexes)
-            unique_tokens_set.add(token)
-
+            most_frequent_pair = max(pair_frequencies, key=pair_frequencies.get)
+            individual_chars = self.__merge_pair(individual_chars, most_frequent_pair)
+            unique_tokens_set.add(most_frequent_pair)
+            unique_tokens.append(most_frequent_pair)
         return unique_tokens
 
-    def __study(self, text: str):
-        pass
+    def __merge_pair(self, tokens, pair):
+        result = []
+        i = 0
+        while i < len(tokens):
+            if i < len(tokens) - 1 and (tokens[i] + tokens[i + 1]) == pair:
+                result.append(pair)
+                i += 2
+            else:
+                result.append(tokens[i])
+                i += 1
+        return result
 
     def __id2token(self, tokens):
         pass
 
     def __token2id(self, tokens):
         pass
-
-    def _replace_item(self, individual_chars, indexes):
-        new_individual_chars = []
-        token = None
-        for idx, value in enumerate(individual_chars):
-            if idx in indexes:
-                token = value
-                continue
-            elif token != None:
-                token += value
-                new_individual_chars.append(token)
-                token = None
-            else:
-                new_individual_chars.append(value)
-
-        return new_individual_chars
-
 
 if __name__ == "__main__":
     vocab_size = 30
