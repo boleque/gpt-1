@@ -2,10 +2,10 @@ from collections import OrderedDict, deque
 import heapq
 
 class BPE:
-    vocab_size: int
-
-    def __init__(self, vocab_size):
-        self.vocab_size = vocab_size
+    def __init__(self, vocab_size: int):
+        self.vocab_size: int = vocab_size
+        self.id2token: Dict[str, int] = {}
+        self.token2id: Dict[str, int] = {}
 
     def fit(self, text):
         tokens: list = self.__retrieve_tokens(text)
@@ -22,7 +22,7 @@ class BPE:
         if size_diff > 0:
             return unique_tokens[:-size_diff]
 
-        individual_chars = [ch for ch in text]
+        individual_chars = list(text)
         while True:
             if len(unique_tokens) >= self.vocab_size:
                 break
@@ -35,12 +35,13 @@ class BPE:
                 pair_frequencies[pair] = pair_frequencies.get(pair, 0) + 1
 
             most_frequent_pair = max(pair_frequencies, key=pair_frequencies.get)
-            individual_chars = self.__merge_pair(individual_chars, most_frequent_pair)
+            individual_chars = BPE.__merge_pair(individual_chars, most_frequent_pair)
             unique_tokens_set.add(most_frequent_pair)
             unique_tokens.append(most_frequent_pair)
         return unique_tokens
 
-    def __merge_pair(self, tokens, pair):
+    @staticmethod
+    def __merge_pair(tokens, pair):
         result = []
         i = 0
         while i < len(tokens):
@@ -53,10 +54,10 @@ class BPE:
         return result
 
     def __id2token(self, tokens):
-        pass
+        self.id2token = {i: item for i, item in enumerate(tokens)}
 
     def __token2id(self, tokens):
-        pass
+        self.token2id = {item: i for i, item in enumerate(tokens)}
 
 if __name__ == "__main__":
     vocab_size = 30
