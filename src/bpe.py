@@ -16,25 +16,24 @@ class BPE:
 
     def encode(self, text: str):
         result = []
-        individual_chars = list(text)
-        for idx, char in enumerate(individual_chars):
-            tokens = [token for token in self.token2id.keys() if token.startswith(char)]
+        i = 0
 
-            suitable_token = None
-            for token in tokens:
-                stacked = self.__stack(token, idx, individual_chars)
-                if suitable_token is None or len(stacked) > len(suitable_token):
-                    suitable_token = stacked
-            result.append(suitable_token)
-        return result
+        while i < len(text):
+            char = text[i]
 
-    def __stack(self, token, index, chars):
-        i = index
-        result = chars[i]
-        while i < len(chars) - 1 and result + chars[i + 1] == token:
-            result += chars[i + 1]
-            i += 1;
-        return result
+            candidate_tokens = [token for token in self.token2id.keys() if token.startswith(char)]
+
+            best_token = char
+            for token in candidate_tokens:
+                if i + len(token) <= len(text) and text[i: i + len(token)] == token:
+                    if len(token) > len(best_token):
+                        best_token = token
+
+            result.append(best_token)
+
+            i += len(best_token)
+
+        return [self.token2id[token] for token in result]
 
     def __generate_tokens(self, text: str):
         unique_tokens_set = set(text)
@@ -83,7 +82,8 @@ class BPE:
 
 if __name__ == "__main__":
     vocab_size = 15
-    text = 'Ежик в тумане!'
+    text = 'вором дрова, дрова вширь двора'
     bpe = BPE(vocab_size)
     bpe.fit(text)
-    bpe.encode(text)
+    result = bpe.encode(text)
+    print(result)
