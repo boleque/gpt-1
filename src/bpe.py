@@ -7,12 +7,26 @@ class BPE:
         self.id2token: Dict[str, int] = {}
         self.token2id: Dict[str, int] = {}
 
+    def save(self, filename):
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+
+    @classmethod
+    def load(cls, filename):
+        with open(filename, 'rb') as f:
+            obj = dill.load(f)
+
+    return obj
+
     def fit(self, text):
         tokens: list = self.__generate_tokens(text)
         self.__id2token(tokens)
         self.__token2id(tokens)
 
         return tokens
+
+    def decode(self, token_ids):
+        return ''.join([self.id2token[id] for id in token_ids])
 
     def encode(self, text: str):
         result = []
@@ -79,11 +93,3 @@ class BPE:
 
     def __token2id(self, tokens):
         self.token2id = {item: i for i, item in enumerate(tokens)}
-
-if __name__ == "__main__":
-    vocab_size = 15
-    text = 'вором дрова, дрова вширь двора'
-    bpe = BPE(vocab_size)
-    bpe.fit(text)
-    result = bpe.encode(text)
-    print(result)
