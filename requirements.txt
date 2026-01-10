@@ -1,0 +1,6 @@
+# PyTorch - deep learning framework
+torch>=2.0.0
+
+# Optional: Add other dependencies as needed
+# numpy>=1.24.0
+# pandas>=2.0.0
