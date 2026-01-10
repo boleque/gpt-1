@@ -8,13 +8,35 @@ class BPE:
         self.token2id: Dict[str, int] = {}
 
     def fit(self, text):
-        tokens: list = self.__retrieve_tokens(text)
+        tokens: list = self.__generate_tokens(text)
         self.__id2token(tokens)
         self.__token2id(tokens)
 
         return tokens
 
-    def __retrieve_tokens(self, text: str):
+    def encode(self, text: str):
+        result = []
+        individual_chars = list(text)
+        for idx, char in enumerate(individual_chars):
+            tokens = [token for token in self.token2id.keys() if token.startswith(char)]
+
+            suitable_token = None
+            for token in tokens:
+                stacked = self.__stack(token, idx, individual_chars)
+                if suitable_token is None or len(stacked) > len(suitable_token):
+                    suitable_token = stacked
+            result.append(suitable_token)
+        return result
+
+    def __stack(self, token, index, chars):
+        i = index
+        result = chars[i]
+        while i < len(chars) - 1 and result + chars[i + 1] == token:
+            result += chars[i + 1]
+            i += 1;
+        return result
+
+    def __generate_tokens(self, text: str):
         unique_tokens_set = set(text)
         unique_tokens = sorted(unique_tokens_set)
 
@@ -60,7 +82,8 @@ class BPE:
         self.token2id = {item: i for i, item in enumerate(tokens)}
 
 if __name__ == "__main__":
-    vocab_size = 30
-    text = 'Из кузова в кузов шла перегрузка арбузов. В грозу в грязи от груза арбузов развалился кузов.'
+    vocab_size = 15
+    text = 'Ежик в тумане!'
     bpe = BPE(vocab_size)
     bpe.fit(text)
+    bpe.encode(text)
